@@ -108,35 +108,30 @@ ALTER SEQUENCE projects_id_seq OWNED BY projects.id;
 --
 
 CREATE TABLE students (
-    id integer NOT NULL,
     first_name character varying(30),
     last_name character varying(30),
-    github character varying(30)
+    github character varying(30) NOT NULL
 );
 
 
 ALTER TABLE students OWNER TO "user";
 
 --
--- Name: students_id_seq; Type: SEQUENCE; Schema: public; Owner: user
+-- Name: report_card_view; Type: VIEW; Schema: public; Owner: user
 --
 
-CREATE SEQUENCE students_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+CREATE VIEW report_card_view AS
+ SELECT s.first_name,
+    s.last_name,
+    p.title,
+    p.max_grade,
+    g.grade
+   FROM ((students s
+     JOIN grades g ON (((s.github)::text = (g.student_github)::text)))
+     JOIN projects p ON (((p.title)::text = (g.project_title)::text)));
 
 
-ALTER TABLE students_id_seq OWNER TO "user";
-
---
--- Name: students_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user
---
-
-ALTER SEQUENCE students_id_seq OWNED BY students.id;
-
+ALTER TABLE report_card_view OWNER TO "user";
 
 --
 -- Name: id; Type: DEFAULT; Schema: public; Owner: user
@@ -150,13 +145,6 @@ ALTER TABLE ONLY grades ALTER COLUMN id SET DEFAULT nextval('grades_id_seq'::reg
 --
 
 ALTER TABLE ONLY projects ALTER COLUMN id SET DEFAULT nextval('projects_id_seq'::regclass);
-
-
---
--- Name: id; Type: DEFAULT; Schema: public; Owner: user
---
-
-ALTER TABLE ONLY students ALTER COLUMN id SET DEFAULT nextval('students_id_seq'::regclass);
 
 
 --
@@ -202,17 +190,10 @@ SELECT pg_catalog.setval('projects_id_seq', 5, true);
 -- Data for Name: students; Type: TABLE DATA; Schema: public; Owner: user
 --
 
-COPY students (id, first_name, last_name, github) FROM stdin;
-1	Jane	Hacker	jhacks
-2	Sarah	Developer	sdevelops
+COPY students (first_name, last_name, github) FROM stdin;
+Jane	Hacker	jhacks
+Sarah	Developer	sdevelops
 \.
-
-
---
--- Name: students_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user
---
-
-SELECT pg_catalog.setval('students_id_seq', 2, true);
 
 
 --
@@ -236,7 +217,7 @@ ALTER TABLE ONLY projects
 --
 
 ALTER TABLE ONLY students
-    ADD CONSTRAINT students_pkey PRIMARY KEY (id);
+    ADD CONSTRAINT students_pkey PRIMARY KEY (github);
 
 
 --
